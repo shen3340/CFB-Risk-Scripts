@@ -19,7 +19,7 @@ This script is meant to output a shoutout to all MVPs for a given turn.
 This script is meant to output the numerical odds of winning each territory, with an output of which teams attacked/defended that territory.
 ![image](https://github.com/user-attachments/assets/1483234f-9a53-4aa4-aac6-bf135e027b52)
 ## Legal Moves
-This script is meant to output every single territory that your team is legally able to attack or defend, making it easier to upload orders from this text file.
+This script is meant to output every single territory that your team is legally able to attack or defend, making it easier to upload orders from this text file. There is a weird thing with this script that requires the day to be one head of the actual game roll.
 # Daily Summary Scripts
 ## Summary Stats
 This script is meant to output the 5 territories that were won with the lowest chance of winning. This script will eventually have more summary stats than just the top 5 luckiest territories.
