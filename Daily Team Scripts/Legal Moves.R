@@ -24,4 +24,4 @@ attack_territories <- with(data, name[
 writeLines(c(
   "DEFEND:", sort(defend_territories), "",
   "ATTACK:", sort(attack_territories)
-), paste0("Legal_Moves_day_", day))
+), paste0("Daily Team Scripts/Legal_Moves_Day_", day))
