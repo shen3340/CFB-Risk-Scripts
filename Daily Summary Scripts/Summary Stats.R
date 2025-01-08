@@ -4,6 +4,7 @@ library(tidyverse)
 library(gt)
 season <- 5
 day <- 4
+filename <- paste0("Daily Summary Scripts/Images/5 Luckiest Territories Season ", season, ", Day ", day, ".png")
 
 # Function to fetch all teams and filter by season
 fetch_all_teams <- function(season) {
@@ -67,4 +68,5 @@ luckiest_territories %>%
   tab_header(
     title = "Top 5 Luckiest Territories",
     subtitle = paste0("Season ", season, ", Day ", day)
-  )
+  ) |> 
+  gtsave(filename, expand = 10)

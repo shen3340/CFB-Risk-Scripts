@@ -47,4 +47,4 @@ final_result <- paste(
   paste0("@", c(discord_players, mvp_reddit), collapse = " ")
 )
 
-writeLines(final_result, paste0("MVP ", season, "-", day, ".txt"))
+writeLines(final_result, paste0("Daily Team Scripts/MVP ", season, "-", day, ".txt"))

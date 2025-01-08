@@ -6,7 +6,7 @@ library(gt)
 season <- 5
 day <- 4
 myteam <- "March"
-filename <- paste0("Odds Season ", season, " day ", day, ".png")
+filename <- paste0("Daily Team Scripts/Images/Odds Season ", season, " day ", day, ".png")
 
 # Fetch team odds and territory data in one go
 fetch_data <- function(team, season, day) {
