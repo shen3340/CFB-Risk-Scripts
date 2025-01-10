@@ -4,7 +4,7 @@ library(tidyverse)
 library(gt)
 
 season <- 5
-day <- 6
+day <- 7
 filename <- paste0("Daily Summary Scripts/Images/5 Luckiest Territories Season ", season, ", Day ", day, ".png")
 
 # Function to fetch all teams and filter by season
@@ -77,3 +77,54 @@ luckiest_territories %>%
     subtitle = paste0("Season ", season, ", Day ", day)
   ) |> 
   gtsave(filename, expand = 10)
+
+
+# player shoutout ----
+library(httr)
+library(jsonlite)
+library(tidyverse)
+library(purrr)
+
+# Define season and day (replace with actual current values)
+season <- 5  # Replace with the current season
+day <- 8    # Replace with the current day
+
+# Function to fetch and parse JSON data from a URL
+fetch_data <- function(url) {
+  response <- GET(url)
+  if (status_code(response) == 200) {
+    content(response, "text", encoding = "UTF-8") %>%
+      fromJSON(flatten = TRUE)
+  } else {
+    stop("Failed to fetch data from ", url)
+  }
+}
+
+# Fetch the teams
+teams_url <- "https://collegefootballrisk.com/api/teams"
+teams_data <- fetch_data(teams_url) |> 
+  mutate(seasons = map_dbl(seasons, ~ max(unlist(.x)))) |> 
+  filter(seasons == season)
+
+# Initialize an empty data frame to store results
+players_meeting_criteria <- data.frame()
+
+# Loop through each team
+for (team in teams_data$name) {
+  players_url <- paste0("https://collegefootballrisk.com/api/players?team=", team)
+  players_data <- fetch_data(players_url)
+  
+  # Filter players who meet the criteria
+  filtered_players <- players_data %>%
+    filter(season == season,
+           day == day,
+           turns_played %in% c(50, 100, 150))
+  
+  # Combine results
+  if (nrow(filtered_players) > 0) {
+    players_meeting_criteria <- bind_rows(players_meeting_criteria, filtered_players)
+  }
+}
+
+# Output players meeting the criteria
+print(players_meeting_criteria)
