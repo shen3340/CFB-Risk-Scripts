@@ -1,36 +1,77 @@
 library(httr)
 library(jsonlite)
 library(tidyverse)
+library(purrr)
 library(gt)
-
 season <- 5
-day <- 7
+day <- 10
+milestones <- c(50, 100, 150, 200, 250)
 filename <- paste0("Daily Summary Scripts/Images/5 Luckiest Territories Season ", season, ", Day ", day, ".png")
 
-# Function to fetch all teams and filter by season
-fetch_all_teams <- function(season) {
-  teams <- GET("https://collegefootballrisk.com/api/teams") %>%
-    content("text", encoding = "UTF-8") %>%
-    fromJSON()
-  
-  teams %>%
-    filter(map_lgl(seasons, ~season %in% .)) %>%
-    pull(name)
+# Fetch and parse JSON data
+fetch_data <- function(url, query = list()) {
+  response <- GET(url, query = query)
+  stop_for_status(response)
+  content(response, "text", encoding = "UTF-8") %>%
+    fromJSON(flatten = TRUE) %>%
+    as_tibble()
 }
 
-# Check if odds data is valid and structured correctly
+# Fetch teams by season
+fetch_teams <- function(season) {
+  fetch_data("https://collegefootballrisk.com/api/teams") %>%
+    mutate(seasons = map_dbl(seasons, ~ max(unlist(.x)))) %>%
+    filter(seasons == season)
+}
+
+# Fetch and filter player data for milestones
+fetch_players <- function(teams, season, day, milestones) {
+  teams$name %>%
+    map_dfr(function(team) {
+      players_url <- paste0("https://collegefootballrisk.com/api/players?team=", team)
+      players_data <- safely(fetch_data)(players_url)$result
+      if (!is.null(players_data) && "turnsPlayed" %in% names(players_data)) {
+        players_data %>%
+          filter(season == season, day == day, turnsPlayed %in% milestones)
+      } else {
+        tibble()
+      }
+    })
+}
+
+# Generate milestone messages
+generate_milestone_messages <- function(players, milestones) {
+  milestones %>%
+    walk(function(milestone) {
+      qualifying_players <- players %>%
+        filter(turnsPlayed == milestone) %>%
+        pull(player)
+      
+      message <- paste("Congratulations to the following players who have played for", 
+                       milestone, "turns:", 
+                       if (length(qualifying_players) > 0) paste(qualifying_players, collapse = ", ") else "")
+      print(message)
+    })
+}
+
+# Fetch odds and validate structure
 is_valid_odds <- function(odds) {
   !is.null(odds) &&
     is.data.frame(odds) &&
     all(c("territory", "winner", "chance") %in% colnames(odds))
 }
 
-# Fetch odds for a specific team and validate structure
 fetch_team_odds <- function(team, season, day) {
-  odds <- GET("https://collegefootballrisk.com/api/team/odds", 
-              query = list(team = team, season = season, day = day)) %>%
-    content("text", encoding = "UTF-8") %>%
-    fromJSON()
+  # Try fetching data and handle errors
+  response <- safely(GET)("https://collegefootballrisk.com/api/team/odds", 
+                          query = list(team = team, season = season, day = day))
+  
+  if (!is.null(response$result) && http_error(response$result)) {
+    return(tibble(territory = character(0), winner = character(0), chance = numeric(0), team = character(0)))
+  }
+  
+  odds <- safely(content)(response$result, "text", encoding = "UTF-8")$result
+  odds <- safely(fromJSON)(odds)$result
   
   if (is_valid_odds(odds)) {
     odds %>%
@@ -41,12 +82,12 @@ fetch_team_odds <- function(team, season, day) {
   }
 }
 
-# Fetch data for all teams and handle invalid responses
+# Fetch odds for all teams
 fetch_all_odds <- function(teams, season, day) {
-  map_dfr(teams, ~fetch_team_odds(.x, season, day))
+  map_dfr(teams$name, ~fetch_team_odds(.x, season, day))
 }
 
-# Process data to find the luckiest outcomes
+# Find the luckiest territories
 get_luckiest_territories <- function(data, top_n = 5) {
   data %>%
     filter(team == winner) %>%
@@ -59,8 +100,11 @@ get_luckiest_territories <- function(data, top_n = 5) {
 }
 
 # Main workflow
-all_teams <- fetch_all_teams(season)
-odds_data <- fetch_all_odds(all_teams, season, day)
+teams_data <- fetch_teams(season)
+players_meeting_criteria <- fetch_players(teams_data, season, day, milestones)
+generate_milestone_messages(players_meeting_criteria, milestones)
+
+odds_data <- fetch_all_odds(teams_data, season, day)
 luckiest_territories <- get_luckiest_territories(odds_data, top_n = 5)
 
 luckiest_territories %>%
@@ -77,54 +121,3 @@ luckiest_territories %>%
     subtitle = paste0("Season ", season, ", Day ", day)
   ) |> 
   gtsave(filename, expand = 10)
-
-
-# player shoutout ----
-library(httr)
-library(jsonlite)
-library(tidyverse)
-library(purrr)
-
-# Define season and day (replace with actual current values)
-season <- 5  # Replace with the current season
-day <- 8    # Replace with the current day
-
-# Function to fetch and parse JSON data from a URL
-fetch_data <- function(url) {
-  response <- GET(url)
-  if (status_code(response) == 200) {
-    content(response, "text", encoding = "UTF-8") %>%
-      fromJSON(flatten = TRUE)
-  } else {
-    stop("Failed to fetch data from ", url)
-  }
-}
-
-# Fetch the teams
-teams_url <- "https://collegefootballrisk.com/api/teams"
-teams_data <- fetch_data(teams_url) |> 
-  mutate(seasons = map_dbl(seasons, ~ max(unlist(.x)))) |> 
-  filter(seasons == season)
-
-# Initialize an empty data frame to store results
-players_meeting_criteria <- data.frame()
-
-# Loop through each team
-for (team in teams_data$name) {
-  players_url <- paste0("https://collegefootballrisk.com/api/players?team=", team)
-  players_data <- fetch_data(players_url)
-  
-  # Filter players who meet the criteria
-  filtered_players <- players_data %>%
-    filter(season == season,
-           day == day,
-           turns_played %in% c(50, 100, 150))
-  
-  # Combine results
-  if (nrow(filtered_players) > 0) {
-    players_meeting_criteria <- bind_rows(players_meeting_criteria, filtered_players)
-  }
-}
-
-# Output players meeting the criteria
-print(players_meeting_criteria)
