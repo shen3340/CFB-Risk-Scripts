@@ -20,9 +20,11 @@ This script is meant to output the numerical odds of winning each territory, wit
 ![image](https://github.com/user-attachments/assets/1483234f-9a53-4aa4-aac6-bf135e027b52)
 ## Legal Moves
 This script is meant to output every single territory that your team is legally able to attack or defend, making it easier to upload orders from this text file. There is a weird thing with this script that requires the day to be one head of the actual game roll.
+## Spreadsheet output
+This script was specifically made for one of the users who uses a spreadsheet for their own analysis. It outputs cumulative statistics for each player on their team. 
 # Daily Summary Scripts
 ## Summary Stats
-This script is meant to output summary stats used for each turn that help with assiting my daily stats recaps. This script has the 5 luckiest territories and a shoutout for players that hit certain turn milestones, e.g. turn 50/100 etc.
+This script is meant to output summary stats used for each turn that help with assisting my daily stats recaps. This script has the 5 luckiest territories and a shoutout for players that hit certain turn milestones, e.g. turn 50/100 etc.
 ![image](https://github.com/shen3340/CFB-Risk-Scripts/blob/321b3e6ae4ea39cde19c706c2344defa1f284702/Daily%20Summary%20Scripts/Images/5%20Luckiest%20Territories%20Season%205%2C%20Day%204.png)
 
 ## Histogram test
