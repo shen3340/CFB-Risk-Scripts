@@ -22,7 +22,8 @@ This script is meant to output the numerical odds of winning each territory, wit
 This script is meant to output every single territory that your team is legally able to attack or defend, making it easier to upload orders from this text file. There is a weird thing with this script that requires the day to be one head of the actual game roll.
 # Daily Summary Scripts
 ## Summary Stats
-This script is meant to output the 5 territories that were won with the lowest chance of winning. This script will eventually have more summary stats than just the top 5 luckiest territories.
+This script is meant to output summary stats used for each turn that help with assiting my daily stats recaps. This script has the 5 luckiest territories and a shoutout for players that hit certain turn milestones, e.g. turn 50/100 etc.
+![image](https://github.com/shen3340/CFB-Risk-Scripts/blob/321b3e6ae4ea39cde19c706c2344defa1f284702/Daily%20Summary%20Scripts/Images/5%20Luckiest%20Territories%20Season%205%2C%20Day%204.png)
 
 ## Histogram test
 This is a work in progress as of now, but it will eventually show a histogram of expected territories won by each team for each roll, using a Monte Carlo Simulation.
