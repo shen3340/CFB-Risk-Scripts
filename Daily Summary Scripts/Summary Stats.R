@@ -101,9 +101,6 @@ get_luckiest_territories <- function(data, top_n = 5) {
 
 # Main workflow
 teams_data <- fetch_teams(season)
-players_meeting_criteria <- fetch_players(teams_data, season, day, milestones)
-generate_milestone_messages(players_meeting_criteria, milestones)
-
 odds_data <- fetch_all_odds(teams_data, season, day)
 luckiest_territories <- get_luckiest_territories(odds_data, top_n = 5)
 
@@ -121,3 +118,6 @@ luckiest_territories %>%
     subtitle = paste0("Season ", season, ", Day ", day)
   ) |> 
   gtsave(filename, expand = 10)
+
+players_meeting_criteria <- fetch_players(teams_data, season, day, milestones)
+generate_milestone_messages(players_meeting_criteria, milestones)
