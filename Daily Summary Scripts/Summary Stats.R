@@ -4,7 +4,7 @@ library(tidyverse)
 library(purrr)
 library(gt)
 season <- 5
-day <- 10
+day <- 16
 milestones <- c(50, 100, 150, 200, 250)
 filename <- paste0("Daily Summary Scripts/Images/5 Luckiest Territories Season ", season, ", Day ", day, ".png")
 
@@ -45,6 +45,7 @@ generate_milestone_messages <- function(players, milestones) {
     walk(function(milestone) {
       qualifying_players <- players %>%
         filter(turnsPlayed == milestone) %>%
+        mutate(player = str_remove(player, "\\$0$")) %>% # Remove $0 at the end of player names
         pull(player)
       
       message <- paste("Congratulations to the following players who have played for", 
@@ -53,6 +54,7 @@ generate_milestone_messages <- function(players, milestones) {
       print(message)
     })
 }
+
 
 # Fetch odds and validate structure
 is_valid_odds <- function(odds) {
