@@ -4,9 +4,9 @@ library(tidyverse)
 library(purrr)
 library(gt)
 season <- 5
-day <- 16
+day <- 18
 milestones <- c(50, 100, 150, 200, 250)
-filename <- paste0("Daily Summary Scripts/Images/5 Luckiest Territories Season ", season, ", Day ", day, ".png")
+filename <- paste0("Daily Summary Scripts/Images/Luckiest Territories Season ", season, ", Day ", day, ".png")
 
 # Fetch and parse JSON data
 fetch_data <- function(url, query = list()) {
@@ -92,7 +92,7 @@ fetch_all_odds <- function(teams, season, day) {
 # Find the luckiest territories
 get_luckiest_territories <- function(data, top_n = 5) {
   data %>%
-    filter(team == winner) %>%
+    filter(team == winner, chance <= 0.5) %>%
     group_by(territory) %>%
     mutate(min_chance = min(chance)) %>%
     filter(chance == min_chance) %>%
@@ -106,6 +106,10 @@ teams_data <- fetch_teams(season)
 odds_data <- fetch_all_odds(teams_data, season, day)
 luckiest_territories <- get_luckiest_territories(odds_data, top_n = 5)
 
+# Get the number of luckiest territories to adjust the title
+num_luckiest <- nrow(luckiest_territories)
+
+# Generate the table
 luckiest_territories %>%
   select(territory, winner, chance) %>%
   gt() %>%
@@ -116,10 +120,11 @@ luckiest_territories %>%
     chance = "Winning Odds (%)"
   ) %>%
   tab_header(
-    title = "Top 5 Luckiest Territories",
+    title = paste0("Top ", num_luckiest, " Luckiest Territories"),
     subtitle = paste0("Season ", season, ", Day ", day)
   ) |> 
   gtsave(filename, expand = 10)
 
+# Fetch and process player milestones
 players_meeting_criteria <- fetch_players(teams_data, season, day, milestones)
 generate_milestone_messages(players_meeting_criteria, milestones)
