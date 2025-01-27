@@ -1,15 +1,12 @@
 library(httr)
 library(tidyverse)
 library(ggthemes)
+library(ggThemeAssist)
 
 base_url <- "https://collegefootballrisk.com/api"
-
-# Main Execution
 season <- 5
-team_name <- "July"
+team_name <- "March"
 day <- 22
-
-
 
 # Helper to fetch API data
 fetch_api_data <- function(endpoint, query = list()) {
@@ -50,16 +47,29 @@ calculate_statistics <- function(team_data, team_name) {
   
   vals <- reduce(odds, ~ convolve(.x, rev(c(1 - .y, .y)), type = "open"), .init = 1)
   vals <- vals / sum(vals)  # Normalize
+  prob_draw <- 100* vals[actual]
   
-  list(actual = actual, expected = expected, vals = vals)
+  list(actual = actual, expected = expected, vals = vals, prob_draw = prob_draw)
 }
 stats <- calculate_statistics(team_data, team_name)
-delta <- stats$actual - territories_day_prev
-territories_oe <- stats$actual - stats$expected
 probability_df <- tibble(
   Territories = seq_along(stats$vals) - 1,
   Probability = stats$vals * 100
 )
+sigma <- sqrt(sum(probability_df$Probability * (probability_df$Territories - stats$expected)^2) / sum(probability_df$Probability))
+delta_territories <- stats$actual - territories_day_prev
+territories_oe <- stats$actual - stats$expected
+if (sigma == 0) {
+  delta <- 0
+} else {
+  delta <- (stats$actual - stats$expected) / sigma
+}
+
+
+
+
+
+
 
 legend_data <- tibble(
   xintercept = c(territories_day_prev, stats$actual, stats$expected),
@@ -69,7 +79,6 @@ legend_data <- tibble(
 )
 
 x_range <- max(probability_df$Territories) - min(probability_df$Territories)
-
 if (x_range > 50) {
   increment <- 10
 } else if (x_range > 20) {
@@ -80,9 +89,12 @@ if (x_range > 50) {
   increment <- 1
 }
 
-
 # Plot histogram
-plot_histogram <- function(probability_df, legend_data, colors, stats, team_name, delta) {
+plot_histogram <- function(probability_df, legend_data, colors, stats, team_name, delta_territories) {
+  box_xmin <- 4
+  box_xmax <- 13
+  box_ymin <- 44
+  box_ymax <- 53
   ggplot(probability_df, aes(x = Territories, y = Probability)) +
     geom_bar(stat = "identity", fill = colors$primary, color = colors$secondary) +
     geom_vline(data = legend_data, aes(xintercept = xintercept, color = label, linetype = label), linewidth = 1) +
@@ -93,18 +105,29 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
     ) + 
     labs(
       title = paste("Number of Territories Histogram:", team_name),
-      subtitle = paste("<i>Expected:</i>", round(stats$expected, 2), ", <i>Actual:</i>", stats$actual, ", <i>Δ Territories=</i>", delta),
+      subtitle = paste("<i>Expected:</i>", round(stats$expected, 2), ", <i>Actual:</i>", stats$actual, ", <i>Δ Territories=</i>", delta_territories),
       x = "Number of Territories Won",
       y = "Percent Chance to Win N Territories (%)"
     ) +
     theme_hc() +
     theme(
       plot.subtitle = ggtext::element_markdown(hjust = 0.5),
-      plot.title = element_text(hjust = 0.5),
+      plot.title = element_text(size = 18, hjust = 0.5),
       legend.position = "inside",
-      legend.title = element_blank()
-    )
+      legend.title = element_blank(),
+      axis.title = element_text(size = 16),
+      axis.text = element_text(size = 14, colour = "black"),
+      panel.grid.major = element_line(color = "gray", size = 0.5, linetype = "dashed"),  # Major gridlines
+      panel.grid.minor = element_line(color = "lightgray", linewidth = 0.25, linetype = "dashed"),  # Minor gridlines
+      panel.grid.major.x = element_line(linetype = "dashed")
+    ) +  geom_rect(aes(xmin = box_xmin, xmax = box_xmax, ymin = box_ymin, ymax = box_ymax),
+                   fill = "gray97", color = "gray97", linetype = "solid", size = 1.2) +
+    annotate("text", x = 5, y = 52, label = paste0("μ = ", round(stats$expected, 3), "\n", 
+                                                   "3σ = ", round(3*sigma, 3), "\n", 
+                                                   "Δσ = ", round(delta, 3), "\n", 
+                                                   "P(Draw) = ", round(stats$prob_draw, 3), "%"),
+             size = 4, color = "black", hjust = 0 ,vjust = 1)
+
 }
 
-plot_histogram(probability_df, legend_data, team_colors, stats, team_name, delta)
-
+plot_histogram(probability_df, legend_data, team_colors, stats, team_name, delta_territories)
