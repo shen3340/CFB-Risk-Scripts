@@ -65,8 +65,17 @@ if (sigma == 0) {
   delta <- (stats$actual - stats$expected) / sigma
 }
 
+# Create a sequence of x-values for the normal distribution curve
+x_values <- seq(min(probability_df$Territories), max(probability_df$Territories), length.out = 100)
 
+# Compute normal probability density function (PDF)
+y_values <- dnorm(x_values, mean = stats$expected, sd = sigma)
 
+# Scale y-values to fit the histogram (normalize)
+y_values <- y_values / max(y_values) * max(probability_df$Probability)
+
+# Create a data frame for the normal curve
+normal_curve <- tibble(Territories = x_values, Probability = y_values)
 
 
 
@@ -97,7 +106,10 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
   box_ymax <- 53
   ggplot(probability_df, aes(x = Territories, y = Probability)) +
     geom_bar(stat = "identity", fill = colors$primary, color = colors$secondary) +
-    geom_vline(data = legend_data, aes(xintercept = xintercept, color = label, linetype = label), linewidth = 1) +
+    geom_vline(data = legend_data, aes(xintercept = xintercept, color = label, linetype = label), linewidth = 1, show.legend = FALSE) +
+    geom_hline(data = legend_data, aes(yintercept = 0, color = label, linetype = label), linewidth = 1) + 
+    geom_line(data = normal_curve, aes(x = Territories, y = Probability), 
+              color = "#54585A", linewidth = 0.5, linetype = "solid") +
     scale_color_manual(values = setNames(legend_data$color, legend_data$label)) +
     scale_linetype_manual(values = setNames(legend_data$linetype, legend_data$label)) +
     scale_x_continuous(
@@ -111,22 +123,24 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
     ) +
     theme_hc() +
     theme(
+      panel.background = element_rect(fill = "gray92", color = NA),
+      legend.background = element_rect(fill = "gray94", color = NA),
       plot.subtitle = ggtext::element_markdown(hjust = 0.5),
       plot.title = element_text(size = 18, hjust = 0.5),
       legend.position = "inside",
       legend.title = element_blank(),
       axis.title = element_text(size = 16),
       axis.text = element_text(size = 14, colour = "black"),
-      panel.grid.major = element_line(color = "gray", size = 0.5, linetype = "dashed"),  # Major gridlines
-      panel.grid.minor = element_line(color = "lightgray", linewidth = 0.25, linetype = "dashed"),  # Minor gridlines
+      panel.grid.major = element_line(color = "gray70", linewidth = 0.5, linetype = "dashed"),  # Major gridlines
+      panel.grid.minor = element_line(color = "gray70", linewidth = 0.25, linetype = "dashed"),  # Minor gridlines
       panel.grid.major.x = element_line(linetype = "dashed")
     ) +  geom_rect(aes(xmin = box_xmin, xmax = box_xmax, ymin = box_ymin, ymax = box_ymax),
-                   fill = "gray97", color = "gray97", linetype = "solid", size = 1.2) +
+                   fill = "gray94", color = "gray94", linetype = "solid", linewidth = 1.2) +
     annotate("text", x = 5, y = 52, label = paste0("μ = ", round(stats$expected, 3), "\n", 
                                                    "3σ = ", round(3*sigma, 3), "\n", 
                                                    "Δσ = ", round(delta, 3), "\n", 
                                                    "P(Draw) = ", round(stats$prob_draw, 3), "%"),
-             size = 4, color = "black", hjust = 0 ,vjust = 1)
+             color = "black", hjust = 0 ,vjust = 1)
 
 }
 
