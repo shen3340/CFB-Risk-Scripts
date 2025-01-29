@@ -5,8 +5,8 @@ library(ggThemeAssist)
 
 base_url <- "https://collegefootballrisk.com/api"
 season <- 5
-team_name <- "March"
-day <- 22
+team_name <- "September"
+day <- 24
 
 # Helper to fetch API data
 fetch_api_data <- function(endpoint, query = list()) {
@@ -47,7 +47,7 @@ calculate_statistics <- function(team_data, team_name) {
   
   vals <- reduce(odds, ~ convolve(.x, rev(c(1 - .y, .y)), type = "open"), .init = 1)
   vals <- vals / sum(vals)  # Normalize
-  prob_draw <- 100* vals[actual]
+  prob_draw <- ifelse(actual + 1 <= length(vals), 100 * vals[actual + 1], 0)
   
   list(actual = actual, expected = expected, vals = vals, prob_draw = prob_draw)
 }
@@ -78,12 +78,12 @@ y_values <- y_values / max(y_values) * max(probability_df$Probability)
 normal_curve <- tibble(Territories = x_values, Probability = y_values)
 
 
-
+legend_levels <- c("X ~ N(μ,σ)", "Expected Value","Actual Territories" , "Prev Num. Territories")
 
 legend_data <- tibble(
-  xintercept = c(territories_day_prev, stats$actual, stats$expected),
-  label = c("Prev Num. Territories", "Actual Territories", "Expected Value"),
-  color = c("#ffb521", ifelse(territories_oe < 0, "#781b0e", "#3b8750"), "#081840"),
+  xintercept = c(NA, territories_day_prev, stats$actual, stats$expected),
+  label = c("X ~ N(μ,σ)","Expected Value", "Actual Territories",  "Prev Num. Territories"),
+  color = c("gray34", "#081840" , ifelse(territories_oe < 0, "#781b0e", "#3b8750"),  "#ffb521"),
   linetype = "dashed"
 )
 
@@ -98,23 +98,58 @@ if (x_range > 50) {
   increment <- 1
 }
 
+y_range <- max(probability_df$Probability)
+if (y_range > 50) {
+  y_increment <- 10
+} else if (y_range > 25) {
+  y_increment <- 5
+} else if (y_range >20) {
+  y_increment <- 2.5
+} else if (y_range > 10) {
+  y_increment <- 2
+} else {
+  y_increment <- 1
+}
+y_max <- ceiling(y_range / y_increment) * y_increment
+
+if (max(probability_df$Territories) < 5) { 
+  legend_x <- 0.8  # Move to top-right if bars are near the left
+} else { 
+  legend_x <- 0.2  # Default to top-left
+}
+
 # Plot histogram
 plot_histogram <- function(probability_df, legend_data, colors, stats, team_name, delta_territories) {
   box_xmin <- 4
   box_xmax <- 13
-  box_ymin <- 44
-  box_ymax <- 53
+  box_ymin <- 16
+  box_ymax <- 25
   ggplot(probability_df, aes(x = Territories, y = Probability)) +
-    geom_bar(stat = "identity", fill = colors$primary, color = colors$secondary) +
-    geom_vline(data = legend_data, aes(xintercept = xintercept, color = label, linetype = label), linewidth = 1, show.legend = FALSE) +
-    geom_hline(data = legend_data, aes(yintercept = 0, color = label, linetype = label), linewidth = 1) + 
+    geom_bar(stat = "identity", fill = colors$primary, color = colors$secondary, position = position_identity()) +
+    geom_vline(data = legend_data, aes(xintercept = xintercept, 
+                                       color = factor(label, levels = legend_levels), 
+                                       linetype = factor(label, levels = legend_levels)), 
+               linewidth = 1, show.legend = FALSE) +
+    geom_hline(data = legend_data, aes(yintercept = 0, 
+                                       color = factor(label, levels = legend_levels), 
+                                       linetype = factor(label, levels = legend_levels)), 
+               linewidth = 1)  +
     geom_line(data = normal_curve, aes(x = Territories, y = Probability), 
-              color = "#54585A", linewidth = 0.5, linetype = "solid") +
-    scale_color_manual(values = setNames(legend_data$color, legend_data$label)) +
-    scale_linetype_manual(values = setNames(legend_data$linetype, legend_data$label)) +
+              color = "#54585A", linewidth = 1, linetype = "solid") +
+    scale_color_manual(values = setNames(legend_data$color, legend_levels)) +
+    scale_linetype_manual(values = setNames(legend_data$linetype, legend_levels)) +
     scale_x_continuous(
-      breaks = seq(min(probability_df$Territories), max(probability_df$Territories), by = increment)
-    ) + 
+      breaks = seq(min(probability_df$Territories), max(probability_df$Territories), by = increment),
+      limits = c(0, max(probability_df$Territories)),  
+      expand = c(0, 0),
+      labels = function(x) ifelse(x == 0, "0", as.character(x))  # Only show one "0"
+    ) +
+    scale_y_continuous(
+      breaks = seq(0, y_max, by = y_increment),  # Ensure breaks include the rounded max
+      limits = c(0, y_max),  # Extend the upper limit
+      expand = c(0, 0),
+      labels = function(y) ifelse(y == 0, "0", as.character(y))  # Ensure "0" is visible
+    ) +  
     labs(
       title = paste("Number of Territories Histogram:", team_name),
       subtitle = paste("<i>Expected:</i>", round(stats$expected, 2), ", <i>Actual:</i>", stats$actual, ", <i>Δ Territories=</i>", delta_territories),
@@ -125,18 +160,20 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
     theme(
       panel.background = element_rect(fill = "gray92", color = NA),
       legend.background = element_rect(fill = "gray94", color = NA),
-      plot.subtitle = ggtext::element_markdown(hjust = 0.5),
+      plot.subtitle = ggtext::element_markdown(size = 16, hjust = 0.5),
       plot.title = element_text(size = 18, hjust = 0.5),
-      legend.position = "inside",
+      legend.position = c(legend_x, .95),  # Moves legend to the top-center
+      legend.justification = c(0.5, 1),  # Aligns legend properly at the top
+      legend.direction = "vertical", 
       legend.title = element_blank(),
       axis.title = element_text(size = 16),
       axis.text = element_text(size = 14, colour = "black"),
-      panel.grid.major = element_line(color = "gray70", linewidth = 0.5, linetype = "dashed"),  # Major gridlines
-      panel.grid.minor = element_line(color = "gray70", linewidth = 0.25, linetype = "dashed"),  # Minor gridlines
-      panel.grid.major.x = element_line(linetype = "dashed")
+      panel.grid.major = element_line(color = "gray60", linewidth = 0.5, linetype = "dashed"),  # Major gridlines
+      panel.grid.major.x = element_line(linetype = "dashed"),
+      panel.grid.major.y = element_line(color = "gray60", linetype = "dashed", linewidth = .5),
     ) +  geom_rect(aes(xmin = box_xmin, xmax = box_xmax, ymin = box_ymin, ymax = box_ymax),
                    fill = "gray94", color = "gray94", linetype = "solid", linewidth = 1.2) +
-    annotate("text", x = 5, y = 52, label = paste0("μ = ", round(stats$expected, 3), "\n", 
+    annotate("text", x = 5, y = 20, label = paste0("μ = ", round(stats$expected, 3), "\n", 
                                                    "3σ = ", round(3*sigma, 3), "\n", 
                                                    "Δσ = ", round(delta, 3), "\n", 
                                                    "P(Draw) = ", round(stats$prob_draw, 3), "%"),
