@@ -2,14 +2,17 @@ library(httr)
 library(jsonlite)
 library(stringr)
 season <- 5
-day <- 6
+day <- 25
 myteam <- "March"
 excluded_ids <- c(249, 186)  # Bermuda/Sicily untouchable territories
 
 # Fetch and parse data
 url <- sprintf("https://collegefootballrisk.com/api/territories?day=%d&season=%d", day, season)
-data <- fromJSON(content(GET(url), "text", encoding = "UTF-8")) %>%
-  transform(neighbors = lapply(neighbors, \(n) as.integer(unlist(str_extract_all(n, "\\b\\d+\\b")))))
+data <- fromJSON(content(GET(url), "text", encoding = "UTF-8"))
+  data <- transform(data, neighbors = lapply(as.character(neighbors), function(n) {
+    as.integer(unlist(str_extract_all(n, "\\b\\d+\\b")))
+  }))
+
 
 # Identify territories
 defend_territories <- with(data, name[owner == myteam & 
