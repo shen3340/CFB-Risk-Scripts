@@ -3,10 +3,11 @@ library(jsonlite)
 library(tidyverse)
 library(purrr)
 library(gt)
+library(ggthemes)
 season <- 5
-day <- 18
+day <- 24
 milestones <- c(50, 100, 150, 200, 250)
-filename <- paste0("Daily Summary Scripts/Images/Luckiest Territories Season ", season, ", Day ", day, ".png")
+filename <- paste0("Daily Summary Scripts/Images/Luckiest Territories.png")
 
 # Fetch and parse JSON data
 fetch_data <- function(url, query = list()) {
