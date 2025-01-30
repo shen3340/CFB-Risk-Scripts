@@ -11,9 +11,26 @@ fetch_api_data <- function(endpoint, query = list()) {
   response <- GET(paste0(base, endpoint), query = query)
   content(response, "parsed")
 }
-get_team_colors <- function(team_name) fetch_api_data("/teams") %>% 
-  keep(~ .x$name == team_name) %>% first() %>% .[["colors"]] %>% 
-  .[c("primary", "secondary")]
+convert_rgba_to_hex <- function(rgba) {
+  # Extract numbers from "rgba(r,g,b,a)" format
+  numbers <- as.numeric(str_extract_all(rgba, "[0-9]+")[[1]])
+  if (length(numbers) >= 3) {
+    rgb(numbers[1], numbers[2], numbers[3], maxColorValue = 255)
+  } else {
+    "#000000"  # Default to black if conversion fails
+  }
+}
+
+get_team_colors <- function(team_name) {
+  colors <- fetch_api_data("/teams") %>% 
+    keep(~ .x$name == team_name) %>% 
+    first() %>% .[["colors"]]
+  
+  list(
+    primary = convert_rgba_to_hex(colors$primary),
+    secondary = convert_rgba_to_hex(colors$secondary)
+  )
+}
 get_team_data <- function(team_name, day, season) {
   fetch_api_data("/team/odds", list(season = season, day = day, team = team_name))
 }
