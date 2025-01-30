@@ -1,10 +1,10 @@
 library(httr)
 library(tidyverse)
 library(ggthemes)
-
+library(showtext)
 base <- "https://collegefootballrisk.com/api"
 season <- 5
-day <- 24
+day <- 25
 
 # Helper functions 
 fetch_api_data <- function(endpoint, query = list()) {
@@ -66,23 +66,24 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
       ) +  
       labs(
         title = paste("Number of Territories Histogram:", team_name),
-        subtitle = paste("<i>Expected:</i>", round(stats$expected, 2), ", <i>Actual:</i>", stats$actual, ", <i>Δ Territories=</i>", delta_territories),
+        subtitle = paste("<i>Expected:</i>", round(stats$expected, 2), ", <i>Actual:</i>", stats$actual, ", <i>ΔTerritories=</i>", delta_territories),
         x = "Number of Territories Won",
         y = "Percent Chance to Win N Territories (%)"
       ) +
       theme_hc() +
       theme(
+        plot.margin = margin(1, 1, 1, 1, "cm"),
         panel.background = element_rect(fill = "gray92", color = NA),
         legend.background = element_rect(fill = "gray94", color = NA),
-        plot.subtitle = ggtext::element_markdown(size = 16, hjust = 0.5),
-        plot.title = element_text(size = 18, hjust = 0.5),
+        plot.subtitle = ggtext::element_markdown(family = "serif", size = 20, hjust = 0.5),
+        plot.title = element_text(size = 22, hjust = 0.5),
         legend.text = element_text(size = 15),
         legend.position = c(legend_x, .95),  # Moves legend to the top-center
         legend.justification = c(0.5, 1),  # Aligns legend properly at the top
         legend.direction = "vertical", 
         legend.title = element_blank(),
-        axis.title = element_text(size = 16),
-        axis.text = element_text(size = 14, colour = "black"),
+        axis.title = element_text(size = 20),
+        axis.text = element_text(size = 18, colour = "black"),
         panel.grid.major = element_line(color = "gray60", linewidth = 0.5, linetype = "dashed"),  # Major gridlines
         panel.grid.major.x = element_line(linetype = "dashed"),
         panel.grid.major.y = element_line(color = "gray60", linetype = "dashed", linewidth = .5),
