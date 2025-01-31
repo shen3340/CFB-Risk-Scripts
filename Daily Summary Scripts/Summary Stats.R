@@ -174,13 +174,13 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
         breaks = seq(min(probability_df$Territories), max(probability_df$Territories), by = increment),
         limits = c(0, max(probability_df$Territories)),  
         expand = c(0, 0),
-        labels = function(x) ifelse(x == 0, "0", as.character(x))  # Only show one "0"
+        labels = function(x) ifelse(x == 0 & !exists("zero_shown", envir = .GlobalEnv), { assign("zero_shown", TRUE, envir = .GlobalEnv); "0" }, ifelse(x == 0, "", as.character(x)))
       ) +
       scale_y_continuous(
         breaks = seq(0, y_max, by = y_increment),  # Ensure breaks include the rounded max
         limits = c(0, y_max),  # Extend the upper limit
         expand = c(0, 0),
-        labels = function(y) ifelse(y == 0, "0", as.character(y))  # Ensure "0" is visible
+        labels = function(y) ifelse(y == 0 & !exists("zero_shown", envir = .GlobalEnv), { assign("zero_shown", TRUE, envir = .GlobalEnv); "0" }, ifelse(y == 0, "", as.character(y)))
       ) +  
       labs(
         title = paste("Number of Territories Histogram:", team_name),
@@ -327,4 +327,3 @@ print(kable(unluckiest_teams, format = "simple"))
 
 players_meeting_criteria <- fetch_players(teams_data, season, day, milestones)
 generate_milestone_messages(players_meeting_criteria, milestones)
-
