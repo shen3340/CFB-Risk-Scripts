@@ -1,3 +1,4 @@
+# Setting libraries, paths, and variables
 library(gt)
 library(ggthemes)
 library(httr)
@@ -6,16 +7,16 @@ library(knitr)
 library(purrr)
 library(showtext)
 library(tidyverse)
-# Setting variables and paths
-season <- 5
-day <- 26
-milestones <- c(50, 100, 150, 200, 250)
 base <- "https://collegefootballrisk.com/api"
+chaos <- "Undecimber"
+day <- 27
 folder <- paste0("Daily Summary Scripts/", day)
+milestones <- c(50, 100, 150, 200, 250)
+season <- 5
+territory_path <- paste0(folder, "/Luckiest Territories.png")
 if (!dir.exists(folder)) {
   dir.create(folder, recursive = TRUE)
 }
-territory_path <- paste0(folder, "/Luckiest Territories.png")
 
 # Helper functions
 
@@ -172,7 +173,7 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
       scale_linetype_manual(values = setNames(legend_data$linetype, legend_levels)) +
       scale_x_continuous(
         breaks = seq(min(probability_df$Territories), max(probability_df$Territories), by = increment),
-        limits = c(0, max(probability_df$Territories)),  
+        limits = c(0, ifelse(team_name == chaos, max(probability_df$Territories) + increment, max(probability_df$Territories))),  
         expand = c(0, 0),
         labels = function(x) ifelse(x == 0 & !exists("zero_shown", envir = .GlobalEnv), { assign("zero_shown", TRUE, envir = .GlobalEnv); "0" }, ifelse(x == 0, "", as.character(x)))
       ) +
@@ -190,7 +191,7 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
       ) +
       theme_hc() +
       theme(
-        plot.margin = margin(1, 1, 1, 1, "cm"),
+        plot.margin = margin(.5, 1, .5, 1, "cm"),
         panel.background = element_rect(fill = "gray92", color = NA),
         legend.background = element_rect(fill = "gray94", color = NA),
         plot.subtitle = ggtext::element_markdown(family = "serif", size = 20, hjust = 0.5),
