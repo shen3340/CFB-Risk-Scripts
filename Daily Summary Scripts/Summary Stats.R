@@ -7,16 +7,24 @@ library(knitr)
 library(purrr)
 library(showtext)
 library(tidyverse)
+library(Unicode)
 base <- "https://collegefootballrisk.com/api"
 chaos <- "Undecimber"
 day <- 27
 folder <- paste0("Daily Summary Scripts/", day)
+italic_a <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC SMALL A"))["Char"]
+italic_D <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC CAPITAL D"))["Char"]
+italic_mu <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC SMALL MU"))["Char"]
+italic_sigma <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC SMALL SIGMA"))["Char"]
+italic_r <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC SMALL R"))["Char"]
+italic_w <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC SMALL W"))["Char"]
 milestones <- c(50, 100, 150, 200, 250)
 season <- 5
 territory_path <- paste0(folder, "/Luckiest Territories.png")
 if (!dir.exists(folder)) {
   dir.create(folder, recursive = TRUE)
 }
+
 
 # Helper functions
 
@@ -169,8 +177,10 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
                  linewidth = 1)  +
       geom_line(data = normal_curve, aes(x = Territories, y = Probability), 
                 color = "#54585A", linewidth = 1, linetype = "solid") +
-      scale_color_manual(values = setNames(legend_data$color, legend_levels)) +
-      scale_linetype_manual(values = setNames(legend_data$linetype, legend_levels)) +
+      scale_color_manual(values = setNames(legend_data$color, legend_levels), 
+                         labels = legend_levels)  # Ensure labels use expressions
+    + scale_linetype_manual(values = setNames(legend_data$linetype, legend_levels), 
+                            labels = legend_levels) + 
       scale_x_continuous(
         breaks = seq(min(probability_df$Territories), max(probability_df$Territories), by = increment),
         limits = c(0, ifelse(team_name == chaos, max(probability_df$Territories) + increment, max(probability_df$Territories))),  
@@ -207,12 +217,12 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
         panel.grid.major.x = element_line(linetype = "dashed"),
         panel.grid.major.y = element_line(color = "gray60", linetype = "dashed", linewidth = .5),
       ) + 
-      annotate("label", x = min(probability_df$Territories) + increment,  
+      annotate("label", x = min(probability_df$Territories) + increment * 0.5,  
                y = min(probability_df$Probability) + 3 * y_increment,  
-               label = paste0("μ = ", round(stats$expected, 3), "\n", 
-                              "3σ = ", round(3*sigma, 3), "\n", 
-                              "Δσ = ", round(delta, 3), "\n", 
-                              "P(Draw) = ", round(stats$prob_draw, 3), "%"),
+               label = paste0(label1, "\n", 
+                              label2,  "\n", 
+                              label3,  "\n", 
+                              label4),
                fill = scales::alpha("gray94", 0.5), color = "black", size = 6, 
                hjust = 0, vjust = 1, label.size = 0)
   )
@@ -274,12 +284,21 @@ for (i in seq_along(leaderboard_data)) {
                          Probability = dnorm(Territories, mean = stats$expected, sd = sigma) / max(dnorm(Territories, mean = stats$expected, sd = sigma)) * max(probability_df$Probability))
   
   # Prepare legend data
-  legend_levels <- c("X ~ N(μ,σ)", "Expected Value","Actual Territories", "Prev Num. Territories")
+  legend_levels <- c(expression(italic("X ~ N(μ,σ)")), "Expected Value", 
+                     "Actual Territories", 
+                     "Prev Num. Territories")
+  
   legend_data <- tibble(
     xintercept = c(0, stats$expected , stats$actual, territories_day_prev),
-    label = c("X ~ N(μ,σ)", "Expected Value", "Actual Territories",  "Prev Num. Territories"),
+    label = legend_levels,
     color = c("gray34", "#081840" , ifelse(territories_oe < 0, "#781b0e", "#3b8750"),  "#ffb521"),
     linetype = "dashed", alpha = ifelse(label == "X ~ N(μ,σ)", 0, 1))
+  
+  label1 <- paste(italic_mu, " = ", round(stats$expected, 3), sep="")
+  label2 <- paste("3", italic_sigma, " = ", round(3*sigma, 3), sep = "")
+  label3 <- paste("Δ", italic_sigma, " = ", round(delta, 3), sep = "")
+  label4 <- paste("P(", italic_D, italic_r, italic_a, italic_w, ") = ", round(stats$prob_draw, 3), "%", sep = "")
+  #"P(Draw) = ", round(stats$prob_draw, 3), "%"),
   
   x_range <- max(probability_df$Territories) - min(probability_df$Territories)
   if (x_range > 50) {
