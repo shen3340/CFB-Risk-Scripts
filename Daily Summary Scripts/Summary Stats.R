@@ -10,7 +10,7 @@ library(tidyverse)
 library(Unicode)
 base <- "https://collegefootballrisk.com/api"
 chaos <- "Undecimber"
-day <- 27
+day <- 20
 folder <- paste0("Daily Summary Scripts/", day)
 italic_a <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC SMALL A"))["Char"]
 italic_D <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC CAPITAL D"))["Char"]
@@ -183,7 +183,7 @@ plot_histogram <- function(probability_df, legend_data, colors, stats, team_name
                             labels = legend_levels) + 
       scale_x_continuous(
         breaks = seq(min(probability_df$Territories), max(probability_df$Territories), by = increment),
-        limits = c(0, ifelse(team_name == chaos, max(probability_df$Territories) + increment, max(probability_df$Territories))),  
+        limits = c(0, ifelse(stats$actual == max(probability_df$Territories), max(probability_df$Territories) + increment, max(probability_df$Territories))),  
         expand = c(0, 0),
         labels = function(x) ifelse(x == 0 & !exists("zero_shown", envir = .GlobalEnv), { assign("zero_shown", TRUE, envir = .GlobalEnv); "0" }, ifelse(x == 0, "", as.character(x)))
       ) +
