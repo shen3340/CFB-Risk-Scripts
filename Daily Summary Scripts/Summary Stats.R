@@ -10,8 +10,8 @@ library(tidyverse)
 library(Unicode)
 base <- "https://collegefootballrisk.com/api"
 chaos <- "Undecimber"
-day <- 20
-folder <- paste0("Daily Summary Scripts/", day)
+day <- 27
+folder <- paste0("Daily Summary Scripts/Day ", day)
 italic_a <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC SMALL A"))["Char"]
 italic_D <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC CAPITAL D"))["Char"]
 italic_mu <- u_char_inspect(u_char_from_name("MATHEMATICAL ITALIC SMALL MU"))["Char"]
@@ -269,7 +269,7 @@ for (i in seq_along(leaderboard_data)) {
     Territories = seq_along(stats$vals) - 1,
     Probability = stats$vals * 100
   )
-  sigma <- sqrt(sum(probability_df$Probability * (probability_df$Territories - stats$expected)^2) / sum(probability_df$Probability))
+  suppressWarnings(sigma <- sqrt(sum(probability_df$Probability * (probability_df$Territories - stats$expected)^2) / sum(probability_df$Probability)))
   delta_territories <- stats$actual - territories_day_prev
   territories_oe <- stats$actual - stats$expected
   delta <- ifelse(sigma == 0, 0, (stats$actual - stats$expected) / sigma)
@@ -334,7 +334,13 @@ for (i in seq_along(leaderboard_data)) {
   hist_path <- paste0(folder, "/", i, "_", team_name, ".png")
   
   # Save the plot with 150 dpi
-  ggsave(filename = hist_path, plot = plot_histogram(probability_df, legend_data, team_colors, stats, team_name, delta_territories), dpi = 150, width = 10, height = 8)
+  suppressWarnings({
+    ggsave(filename = hist_path, 
+           plot = plot_histogram(probability_df, legend_data, team_colors, stats, team_name, delta_territories), 
+           dpi = 150, 
+           width = 10, 
+           height = 8)
+  })
 }
 
 team_stats_df <- bind_rows(team_stats_list)
