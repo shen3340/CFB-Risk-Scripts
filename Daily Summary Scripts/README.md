@@ -13,17 +13,18 @@ A histogram of expected territories won by each team using convolution.
 ## Luckiest/Unluckiest Teams
 A table outputted to the console of the 3 luckiest and unluckiest teams with their corresponding sigma.  
 
-Luckiest Teams    Today's Sigma
----------------  --------------
-March                     1.423
-September                 0.639
-October                  -0.170
+| Luckiest Teams | Today's Sigma |
+|:---------:|:---------:|
+|March   | 1.423  |
+| September    |.639 |
+| October |-.170 |
 
-Unluckiest Teams    Today's Sigma
------------------  --------------
-February                   -1.231
-July                       -1.095
-August                     -1.000
+| Unluckiest Teams | Today's Sigma |
+|:---------:|:---------:|
+|February  | -1.231  |
+| July |-1.095|
+| August |-1.000 |
+
 
 ## Player Shoutout
 Text outputted to the console of player turn milestones they hit this turn: 
