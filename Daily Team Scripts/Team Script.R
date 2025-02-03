@@ -37,7 +37,7 @@ clean_username <- function(usernames) {
   }, USE.NAMES = FALSE)
 }
 
-fetch_data <- function(team, season, day) {
+get_odds <- function(team, season, day) {
   team_odds <- GET("https://collegefootballrisk.com/api/team/odds", query = list(team = team, season = season, day = day)) %>%
     content("text", encoding = "UTF-8") %>%
     fromJSON() %>%
@@ -125,7 +125,7 @@ write_total_mvp <- paste(
 
 writeLines(write_total_mvp, sprintf("Daily Team Scripts/%d/%d/MVP.txt", season, day))
 
-fetch_data(myteam, season, day) %>%
+get_odds(myteam, season, day) %>%
   gt() %>%
   fmt_percent(columns = chance, decimals = 2) %>%
   cols_label(
