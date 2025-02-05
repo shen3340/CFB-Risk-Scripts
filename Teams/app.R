@@ -6,11 +6,11 @@ library(gt)
 library(gtExtras)
 
 # API base URL
-base <- "https://collegefootballrisk.com/api"
+base <- "https://dough.collegefootballrisk.com/api"
 
 # Fetch teams data from the API
 fetch_teams_data <- function() {
-  response <- GET("https://collegefootballrisk.com/api/teams")
+  response <- GET("https://dough.collegefootballrisk.com/api/teams")
   if (status_code(response) == 200) {
     teams_data <- fromJSON(content(response, "text", encoding = "UTF-8"))
     return(teams_data)
@@ -58,7 +58,7 @@ get_odds <- function(team, season, day) {
   territory_data <- team_odds$territory %>%
     unique() %>%
     map_df(~{
-      GET("https://collegefootballrisk.com/api/territory/turn", query = list(territory = .x, season = season, day = day)) %>%
+      GET("https://dough.collegefootballrisk.com/api/territory/turn", query = list(territory = .x, season = season, day = day)) %>%
         content("text", encoding = "UTF-8") %>%
         fromJSON() %>%
         .$teams %>%
@@ -81,7 +81,7 @@ get_odds <- function(team, season, day) {
 
 # Helper Function: Get Legal Moves
 get_legal_moves <- function(season, day, myteam) {
-  url <- sprintf("https://collegefootballrisk.com/api/territories?day=%s&season=%s", day, season)
+  url <- sprintf("https://dough.collegefootballrisk.com/api/territories?day=%s&season=%s", day, season)
   data <- fromJSON(content(GET(url), "text", encoding = "UTF-8"))
   
   data <- transform(data, neighbors = lapply(as.character(neighbors), function(n) {

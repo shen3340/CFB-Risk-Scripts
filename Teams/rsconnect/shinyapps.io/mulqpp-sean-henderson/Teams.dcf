@@ -1,0 +1,12 @@
+name: Teams
+title: Teams
+username: mulqpp-sean-henderson
+account: mulqpp-sean-henderson
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13886893
+bundleId: 9752623
+url: https://shen3340.shinyapps.io/Teams/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
