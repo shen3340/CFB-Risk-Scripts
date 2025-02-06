@@ -28,7 +28,8 @@ This script is meant to output summary stats used for each turn that help with a
 ![image](https://github.com/shen3340/CFB-Risk-Scripts/blob/321b3e6ae4ea39cde19c706c2344defa1f284702/Daily%20Summary%20Scripts/Images/5%20Luckiest%20Territories%20Season%205%2C%20Day%204.png)
 
 ## Histogram test
-This is a work in progress as of now, but it will eventually show a histogram of expected territories won by each team for each roll, using a Monte Carlo Simulation, using convolution to visualize the probability distribution.
+These histograms show expected territories won by each team for each roll, using convolution to visualize the probability distribution. 
+![image](https://github.com/shen3340/CFB-Risk-Scripts/blob/ddedd2cd4d73d7fa302153d0eb1ba58a6d58b340/Archive/Month%20Risk/Day%2027/1_March.png)
 
 
 
