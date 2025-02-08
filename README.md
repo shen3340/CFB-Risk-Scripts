@@ -34,6 +34,10 @@ This script will output the following information to encompass every team for a 
 
 This folder encompasses the luckiest territories and all histograms for every past turn in the game. 
 
+# Team Dashboard
+
+For non-technical individuals, I created a Shiny App that will output all of the information from the Daily Team Script without having to run any code at [College Football Risk Shiny App (currently archived)](https://shen3340.shinyapps.io/Teams/).
+
 
 
 
