@@ -4,9 +4,9 @@ library(jsonlite)
 library(tidyverse)
 library(gt)
 library(gtExtras)
-
 # API base URL
 base <- "https://dough.collegefootballrisk.com/api"
+setwd("C:/Users/shen3/OneDrive/Desktop/R/Risk/CFB-Risk-Scripts/Team Dashboard")
 
 # Fetch teams data from the API
 fetch_teams_data <- function() {
@@ -132,6 +132,9 @@ ui <- fluidPage(
     ),
     
     mainPanel(
+      h3("SVG Map:"),
+      htmlOutput("map"),
+      
       h3("Team Odds:"),
       tableOutput("oddsTable"),
       
@@ -158,10 +161,18 @@ server <- function(input, output, session) {
     updateSelectInput(session, "team", choices = available_teams)
   })
   
+  
   # Render team selection UI
   output$team_ui <- renderUI({
     selectInput("team", "Select Team:", choices = NULL)
   })
+  
+  output$map <- renderUI({
+    tags$div(
+      HTML(readLines("www/map.svg", warn = FALSE))  # Read SVG as HTML
+    )
+  })
+  
   
   # Fetch and display data when 'Fetch Data' is clicked
   observeEvent(input$fetch, {
